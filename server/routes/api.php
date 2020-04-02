@@ -15,4 +15,12 @@ use App\Services\InbentaApiService;
 |
 */
 
-Route::get('/connection', 'InbentaApiController@connection');
+Route::group([
+
+	'prefix' => 'v1',
+
+], function ($router) {
+
+	Route::get('/connection', 'InbentaApiController@connection');
+
+});
