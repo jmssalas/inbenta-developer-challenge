@@ -95,6 +95,12 @@ class InbentaApiService implements InbentaApiInterface
         //return $data; // Return $data if needed
     }
 
+    public function sendMessage($message) 
+    {
+        Log::info($message);
+        return ['message' => $message];
+    }
+
     private function checkConnection() 
     {
         Log::info('Getting session info...');

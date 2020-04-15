@@ -23,5 +23,6 @@ Route::group([
 
 	Route::post('/connect', 'InbentaApiController@connect');
 	Route::post('/conversation', 'InbentaApiController@createConversation');
+	Route::post('/conversation/message', 'InbentaApiController@sendMessage');
 
 });
