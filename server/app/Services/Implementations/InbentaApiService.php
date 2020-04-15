@@ -2,6 +2,7 @@
 
 namespace App\Services\Implementations;
 
+use App\Exceptions\ApiException;
 use App\Services\Interfaces\InbentaApiInterface;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -35,7 +36,7 @@ class InbentaApiService implements InbentaApiInterface
         ];
 
         $response = Http::withHeaders($headers)->post($this->authEndpoint, $body);
-        if (!$response->successful()) abort($response->status());
+        if (!$response->successful()) throw new ApiException($this->customErrorMessage($response->json()['message']), $response->status());
 
         $json = $response->json();
 
@@ -48,7 +49,7 @@ class InbentaApiService implements InbentaApiInterface
         ];
         
         $response = Http::withHeaders($headers)->get($this->apiEndpoint, $headers);
-        if (!$response->successful()) abort($response->status());
+        if (!$response->successful()) throw new ApiException($this->customErrorMessage($response->json()['message']), $response->status());
         
         $json = $response->json();
 
@@ -59,5 +60,10 @@ class InbentaApiService implements InbentaApiInterface
             'expiration' => $expiration,
             'chatbotApiUrl' => $chatbotApiUrl,
         ];
+    }
+
+    private function customErrorMessage($message) 
+    {
+        return __('inbenta.api_error') . $message;
     }
 }
