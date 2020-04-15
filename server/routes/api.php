@@ -21,6 +21,6 @@ Route::group([
 
 ], function ($router) {
 
-	Route::get('/connection', 'InbentaApiController@connection');
+	Route::post('/connect', 'InbentaApiController@connect');
 
 });

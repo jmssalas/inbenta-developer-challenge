@@ -14,7 +14,7 @@ class InbentaApiController extends Controller
     	$this->inbentaApiService = $inbentaApiService;
     }
 
-    public function connection() 
+    public function connect() 
     {
     	return $this->inbentaApiService->connect();
     }

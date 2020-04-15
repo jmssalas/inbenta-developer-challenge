@@ -55,11 +55,13 @@ class InbentaApiService implements InbentaApiInterface
 
         $chatbotApiUrl = $json['apis']['chatbot'];
 
-        return [
+        $data = [
             'accessToken' => $accessToken,
             'expiration' => $expiration,
             'chatbotApiUrl' => $chatbotApiUrl,
         ];
+
+        session()->put($data);
     }
 
     private function customErrorMessage($message) 
