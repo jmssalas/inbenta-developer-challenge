@@ -18,4 +18,9 @@ class InbentaApiController extends Controller
     {
     	return $this->inbentaApiService->connect();
     }
+
+    public function createConversation() 
+    {
+    	return $this->inbentaApiService->createConversation();
+    }
 }

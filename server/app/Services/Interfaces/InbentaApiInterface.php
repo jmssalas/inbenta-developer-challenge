@@ -10,4 +10,7 @@ use Carbon\Carbon;
 interface InbentaApiInterface 
 {
     public function connect();
+
+    public function createConversation();
+    
 }
