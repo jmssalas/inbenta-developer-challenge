@@ -1,13 +1,14 @@
-<?php declare(strict_types=1);
+<?php 
 
-namespace App\Services;
+namespace App\Services\Implementations;
 
+use App\Services\Interfaces\InbentaApiInterface;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 use Carbon\Carbon;
 
-class InbentaApiService 
+class InbentaApiService implements InbentaApiInterface
 {
     private $apiKey;
     private $secret;
