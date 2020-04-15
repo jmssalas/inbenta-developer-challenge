@@ -97,21 +97,100 @@ class InbentaApiService implements InbentaApiInterface
 
     public function sendMessage($message) 
     {
-        Log::info($message);
-        return ['message' => $message];
+        $success = $newConversation = false;
+        $totalTry = 2;
+        $try = 0;
+        do 
+        {
+            $data = $this->checkConversation($newConversation);
+
+            $headers = [
+                'x-inbenta-key' => $this->apiKey,
+                'x-inbenta-session' => 'Bearer ' . $data['sessionToken'] . "npand",
+                'Authorization' => 'Bearer ' . $data['accessToken'],
+            ];
+
+            $body = ['message' => $message];
+
+            $response = Http::withHeaders($headers)->post($data['chatbotApiUrl'] . $this->sendMessageEndpoint, $body);
+            if (!$response->successful()) $newConversation = true;
+            else $success = true;
+
+            $try++;
+        } while (!$success && $try < $totalTry);
+        
+        if (!$success) $this->processResponse($response);
+
+        $answers = $response->json()['answers'];
+
+        $messages = [];
+        foreach ($answers as $answer)
+        {
+            foreach ($answer['messageList'] as $message)
+            {
+                $messages[] = $message;
+            }
+        }
+
+        return [
+            'response' => $messages,
+        ];
+    }
+
+    private function checkConversation($newConversation = false)
+    {
+        if (!$newConversation) 
+        {
+            Log::info('Getting conversation session info...');
+            $totalTry = 2;
+            $try = 0;
+            $sessionToken = null;
+            while (!$sessionToken && $try < $totalTry) 
+            {
+                $sessionToken = session()->get('sessionToken');
+
+                if (!$sessionToken)
+                {
+                    Log::info('Session info not found. Getting new session info...');
+                    $this->createConversation();
+                    Log::info('Session info renewed.');
+                }
+                $try++;
+            }
+        }
+        else 
+        {
+            Log::info('Renewing session info...');
+            $this->createConversation();
+            Log::info('Session info renewed.');
+
+            $sessionToken = session()->get('sessionToken');
+        }
+        
+        if (!$sessionToken) throw new ApiException(__('inbenta.session_error'), 500);
+
+        Log::info('Conversation info got!');
+
+        $this->checkExpiration();
+
+        return [
+            'accessToken' => session()->get('accessToken'),
+            'chatbotApiUrl' => session()->get('chatbotApiUrl'),
+            'sessionToken' => session()->get('sessionToken'),
+        ];
     }
 
     private function checkConnection() 
     {
-        Log::info('Getting session info...');
+        Log::info('Getting token session info...');
         $totalTry = 2;
         $try = 0;
-        $expiration = null;
-        while (!$expiration && $try < $totalTry) 
+        $accessToken = null;
+        while (!$accessToken && $try < $totalTry) 
         {
-            $expiration = session()->get('expiration');
+            $accessToken = session()->get('accessToken');
 
-            if (!$expiration)
+            if (!$accessToken)
             {
                 Log::info('Session info not found. Getting new session info...');
                 $this->connect();
@@ -120,10 +199,20 @@ class InbentaApiService implements InbentaApiInterface
             $try++;
         }
 
-        if (!$expiration) throw new ApiException(__('inbenta.session_error'), 500);
+        if (!$accessToken) throw new ApiException(__('inbenta.session_error'), 500);
 
+        $this->checkExpiration();
+
+        return [
+            'accessToken' => session()->get('accessToken'),
+            'chatbotApiUrl' => session()->get('chatbotApiUrl'),
+        ];
+    }
+
+    private function checkExpiration()
+    {
         Log::info('Checking expiration...');
-        $expirationDate = Carbon::createFromTimestamp($expiration);
+        $expirationDate = Carbon::createFromTimestamp(session()->get('expiration'));
 
         if (Carbon::now() > $expirationDate) 
         {
@@ -132,19 +221,27 @@ class InbentaApiService implements InbentaApiInterface
             Log::info('Token renewed.');
         }
         else Log::info('Token is still valid.');
-
-        return [
-            'accessToken' => session()->get('accessToken'),
-            'chatbotApiUrl' => session()->get('chatbotApiUrl'),
-        ];
     }
 
     private function processResponse($response) 
     {
         if (!$response->successful()) 
+        {
+            $json = $response->json();
+            $message = "";
+
+            if (array_key_exists('message', $json)) $message = $json['message'];
+            elseif (array_key_exists('errors', $json)) 
+            {
+                foreach($json['errors'] as $error)
+                    if (array_key_exists('message', $error)) $message = $message . " " . $error['message'];
+            }
+            else $message = json_encode($json);
+
             throw new ApiException(
-                        $this->customErrorMessage($response->json()['message']), 
+                        $this->customErrorMessage($message), 
                         $response->status());
+        }
     }
 
     private function customErrorMessage($message) 

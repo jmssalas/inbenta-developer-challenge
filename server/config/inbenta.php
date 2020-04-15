@@ -16,8 +16,8 @@ return [
         'api' => env('INBENTA_ENDPOINT_API'),
 
         'chatbot' => [
-            'create_conversation' => env('INBENTA_CHATBOT_CREATE_CONVERSATION'), 
-            'send_message' => env('INBENTA_CHATBOT_ENDPOINT_SEND_MESSAGE'), 
+            'create_conversation' => env('INBENTA_ENDPOINT_CHATBOT_CREATE_CONVERSATION'), 
+            'send_message' => env('INBENTA_ENDPOINT_CHATBOT_SEND_MESSAGE'), 
         ],
     ],
     

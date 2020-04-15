@@ -27,7 +27,6 @@ class InbentaApiController extends Controller
 
     public function sendMessage(SendMessageRequest $request) 
     {
-    	return $request;
     	return $this->inbentaApiService->sendMessage($request->message);
     }
 }
