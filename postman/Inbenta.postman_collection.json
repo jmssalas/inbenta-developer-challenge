@@ -1,0 +1,311 @@
+{
+	"info": {
+		"_postman_id": "5ca646f7-13a5-4462-b875-3ac1c35c0f1c",
+		"name": "Inbenta",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Laravel API",
+			"item": [
+				{
+					"name": "Send Message",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"message\": \"Hi!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_eb}}/v1/conversation/message",
+							"host": [
+								"{{url_eb}}"
+							],
+							"path": [
+								"v1",
+								"conversation",
+								"message"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_eb}}/v1/conversation/history",
+							"host": [
+								"{{url_eb}}"
+							],
+							"path": [
+								"v1",
+								"conversation",
+								"history"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Inbenta API",
+			"item": [
+				{
+					"name": "Access Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5972f9e0-b51d-4fe8-ae79-fd0944f6de20",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"access_token\", jsonData.accessToken);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-inbenta-key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"secret\": \"{{secret}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.inbenta.io/v1/auth",
+							"protocol": "https",
+							"host": [
+								"api",
+								"inbenta",
+								"io"
+							],
+							"path": [
+								"v1",
+								"auth"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API URL",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3e4ba129-b9bf-483e-a231-40df2e57b69a",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"url_chatbot\", jsonData.apis.chatbot);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-inbenta-key",
+								"type": "text",
+								"value": "{{api_key}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.inbenta.io/v1/apis",
+							"protocol": "https",
+							"host": [
+								"api",
+								"inbenta",
+								"io"
+							],
+							"path": [
+								"v1",
+								"apis"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Conversation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3e4ba129-b9bf-483e-a231-40df2e57b69a",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"session_token\", jsonData.sessionToken);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-inbenta-key",
+								"type": "text",
+								"value": "{{api_key}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url_chatbot}}/v1/conversation",
+							"host": [
+								"{{url_chatbot}}"
+							],
+							"path": [
+								"v1",
+								"conversation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3e4ba129-b9bf-483e-a231-40df2e57b69a",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-inbenta-key",
+								"type": "text",
+								"value": "{{api_key}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-inbenta-session",
+								"value": "Bearer {{session_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"message\": \"danpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url_chatbot}}/v1/conversation/message",
+							"host": [
+								"{{url_chatbot}}"
+							],
+							"path": [
+								"v1",
+								"conversation",
+								"message"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get History",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3e4ba129-b9bf-483e-a231-40df2e57b69a",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-inbenta-key",
+								"type": "text",
+								"value": "{{api_key}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "x-inbenta-session",
+								"value": "Bearer {{session_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url_chatbot}}/v1/conversation/history",
+							"host": [
+								"{{url_chatbot}}"
+							],
+							"path": [
+								"v1",
+								"conversation",
+								"history"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
