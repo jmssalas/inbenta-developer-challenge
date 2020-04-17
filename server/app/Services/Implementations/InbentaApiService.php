@@ -29,6 +29,12 @@ class InbentaApiService implements InbentaApiInterface
         
         $this->createConversationEndpoint = config('inbenta.endpoints.chatbot.create_conversation');
         $this->sendMessageEndpoint = config('inbenta.endpoints.chatbot.send_message');
+
+        if (!$this->apiKey || !$this->secret || !$this->authEndpoint ||
+            !$this->apiEndpoint || !$this->createConversationEndpoint || !$this->sendMessageEndpoint) 
+        {
+            throw new ApiException(__('general.inbenta_env_variables_not_set'), 500);
+        }
     }
 
     public function connect() 
@@ -41,7 +47,7 @@ class InbentaApiService implements InbentaApiInterface
             'secret' => $this->secret
         ];
 
-        $response = Http::withHeaders($headers)->post($this->authEndpoint, $body);
+        $response = $this->makePostRequest($headers, $this->authEndpoint, $body);
         $this->processResponse($response);
 
         $json = $response->json();
@@ -54,7 +60,7 @@ class InbentaApiService implements InbentaApiInterface
             'Authorization' => 'Bearer ' . $accessToken,
         ];
         
-        $response = Http::withHeaders($headers)->get($this->apiEndpoint, $headers);
+        $response = $this->makeGetRequest($headers, $this->apiEndpoint);
         $this->processResponse($response);
         
         $json = $response->json();
@@ -81,7 +87,7 @@ class InbentaApiService implements InbentaApiInterface
         ];
         $body = [];
 
-        $response = Http::withHeaders($headers)->post($data['chatbotApiUrl'] . $this->createConversationEndpoint, $body);
+        $response = $this->makePostRequest($headers, $data['chatbotApiUrl'] . $this->createConversationEndpoint, $body);
         $this->processResponse($response);
 
         $json = $response->json();
@@ -106,13 +112,13 @@ class InbentaApiService implements InbentaApiInterface
 
             $headers = [
                 'x-inbenta-key' => $this->apiKey,
-                'x-inbenta-session' => 'Bearer ' . $data['sessionToken'] . "npand",
+                'x-inbenta-session' => 'Bearer ' . $data['sessionToken'],
                 'Authorization' => 'Bearer ' . $data['accessToken'],
             ];
 
             $body = ['message' => $message];
 
-            $response = Http::withHeaders($headers)->post($data['chatbotApiUrl'] . $this->sendMessageEndpoint, $body);
+            $response = $this->makePostRequest($headers, $data['chatbotApiUrl'] . $this->sendMessageEndpoint, $body);
             if (!$response->successful()) $newConversation = true;
             else $success = true;
 
@@ -160,7 +166,7 @@ class InbentaApiService implements InbentaApiInterface
         }
         else 
         {
-            Log::info('Renewing session info...');
+            Log::info('Something wrong with last conversation session. Renewing conversation session info...');
             $this->createConversation();
             Log::info('Session info renewed.');
 
@@ -243,6 +249,26 @@ class InbentaApiService implements InbentaApiInterface
                         $response->status());
         }
     }
+
+    private function makePostRequest($headers, $endpoint, $body) 
+    {
+        Log::debug("Making POST request to " . $endpoint);
+        Log::debug("\t- headers: " . json_encode($headers));
+        Log::debug("\t- body: " . json_encode($body));
+        $response = Http::withHeaders($headers)->post($endpoint, $body);
+        Log::debug("Successful: " . json_encode($response->successful()));
+        return $response;
+    }
+
+    private function makeGetRequest($headers, $endpoint) 
+    {
+        Log::debug("Making GET request to " . $endpoint);
+        Log::debug("\t- headers: " . json_encode($headers));
+        $response = Http::withHeaders($headers)->get($endpoint);
+        Log::debug("Successful: " . json_encode($response->successful()));
+        return $response;
+    }
+
 
     private function customErrorMessage($message) 
     {
