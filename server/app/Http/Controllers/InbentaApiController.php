@@ -15,18 +15,13 @@ class InbentaApiController extends Controller
     	$this->inbentaApiService = $inbentaApiService;
     }
 
-    public function connect() 
-    {
-    	return $this->inbentaApiService->connect();
-    }
-
-    public function createConversation() 
-    {
-    	return $this->inbentaApiService->createConversation();
-    }
-
     public function sendMessage(SendMessageRequest $request) 
     {
     	return $this->inbentaApiService->sendMessage($request->message);
+    }
+
+	public function getHistory() 
+    {
+    	return $this->inbentaApiService->getHistory();
     }
 }

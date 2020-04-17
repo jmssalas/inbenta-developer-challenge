@@ -10,10 +10,9 @@ use Carbon\Carbon;
 
 interface InbentaApiInterface 
 {
-    public function connect();
-
-    public function createConversation();
-
+    
     public function sendMessage($message);
+
+    public function getHistory();
 
 }

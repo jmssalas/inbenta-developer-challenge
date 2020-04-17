@@ -18,6 +18,7 @@ class InbentaApiService implements InbentaApiInterface
 
     private $createConversationEndpoint;
     private $sendMessageEndpoint;
+    private $getHistoryEndpoint;
 
     function __construct()
     {
@@ -29,15 +30,86 @@ class InbentaApiService implements InbentaApiInterface
         
         $this->createConversationEndpoint = config('inbenta.endpoints.chatbot.create_conversation');
         $this->sendMessageEndpoint = config('inbenta.endpoints.chatbot.send_message');
+        $this->getHistoryEndpoint = config('inbenta.endpoints.chatbot.get_history');
 
         if (!$this->apiKey || !$this->secret || !$this->authEndpoint ||
-            !$this->apiEndpoint || !$this->createConversationEndpoint || !$this->sendMessageEndpoint) 
+            !$this->apiEndpoint || !$this->createConversationEndpoint || 
+            !$this->sendMessageEndpoint || !$this->getHistoryEndpoint) 
         {
             throw new ApiException(__('general.inbenta_env_variables_not_set'), 500);
         }
     }
 
-    public function connect() 
+    public function sendMessage($message) 
+    {
+        $success = $newConversation = false;
+        $totalTry = 2;
+        $try = 0;
+        while (!$success && $try < $totalTry) 
+        {   // This loop is because the sessionToken can expire and there is no expiration value. (like in accessToken)
+            // If the first time the call has failed, make a call to create a new conversation. 
+            // if the second time the call has failed again, then return the error.
+
+            $data = $this->checkConversation($newConversation);
+
+            $headers = [
+                'x-inbenta-key' => $this->apiKey,
+                'x-inbenta-session' => 'Bearer ' . $data['sessionToken'],
+                'Authorization' => 'Bearer ' . $data['accessToken'],
+            ];
+
+            $body = ['message' => $message];
+
+            $response = $this->makePostRequest($headers, $data['chatbotApiUrl'] . $this->sendMessageEndpoint, $body);
+            if (!$response->successful()) $newConversation = true;
+            else $success = true;
+
+            $try++;
+        }
+        
+        if (!$success) $this->processResponse($response);
+
+        $answers = $response->json()['answers'];
+
+        $messages = [];
+        foreach ($answers as $answer)
+        {
+            foreach ($answer['messageList'] as $message)
+            {
+                $messages[] = $message;
+            }
+        }
+
+        return [
+            'response' => $messages,
+        ];
+    }
+
+    public function getHistory() 
+    {
+        $accessToken = session()->get('accessToken');
+        $chatbotApiUrl = session()->get('chatbotApiUrl');
+        $sessionToken = session()->get('sessionToken');
+
+        $history = [];
+        if ($accessToken && $chatbotApiUrl && $sessionToken)
+        {
+            $headers = [
+                'x-inbenta-key' => $this->apiKey,
+                'x-inbenta-session' => 'Bearer ' . $sessionToken,
+                'Authorization' => 'Bearer ' . $accessToken,
+            ];
+
+            $response = $this->makeGetRequest($headers, $chatbotApiUrl . $this->getHistoryEndpoint);
+            if ($response->successful()) $history = $response->json();
+        }
+
+        return [
+            "history" => $history,
+        ];
+    }
+
+    private function connect() 
     {
         $headers = [
             'x-inbenta-key' => $this->apiKey,
@@ -77,7 +149,7 @@ class InbentaApiService implements InbentaApiInterface
         //return $data; // Return $data if needed 
     }
 
-    public function createConversation()
+    private function createConversation()
     {
         $data = $this->checkConnection();
 
@@ -99,48 +171,6 @@ class InbentaApiService implements InbentaApiInterface
         session()->put($session);
         //$data = array_merge($data, $session);
         //return $data; // Return $data if needed
-    }
-
-    public function sendMessage($message) 
-    {
-        $success = $newConversation = false;
-        $totalTry = 2;
-        $try = 0;
-        do 
-        {
-            $data = $this->checkConversation($newConversation);
-
-            $headers = [
-                'x-inbenta-key' => $this->apiKey,
-                'x-inbenta-session' => 'Bearer ' . $data['sessionToken'],
-                'Authorization' => 'Bearer ' . $data['accessToken'],
-            ];
-
-            $body = ['message' => $message];
-
-            $response = $this->makePostRequest($headers, $data['chatbotApiUrl'] . $this->sendMessageEndpoint, $body);
-            if (!$response->successful()) $newConversation = true;
-            else $success = true;
-
-            $try++;
-        } while (!$success && $try < $totalTry);
-        
-        if (!$success) $this->processResponse($response);
-
-        $answers = $response->json()['answers'];
-
-        $messages = [];
-        foreach ($answers as $answer)
-        {
-            foreach ($answer['messageList'] as $message)
-            {
-                $messages[] = $message;
-            }
-        }
-
-        return [
-            'response' => $messages,
-        ];
     }
 
     private function checkConversation($newConversation = false)
