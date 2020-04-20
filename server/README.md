@@ -20,7 +20,7 @@ In addition, this environment file contains the following variables (default: in
 - `POKEAPI_ENDPOINT_POKEMON`: This is the endpoint to get the pokemons.
 - `POKEAPI_ENDPOINT_LOCATION`: This is the endpoint to get the pokemon locations.
 - `POKEAPI_PAGINATION_LIMIT`: This is the pagination limit of result of the endpoints (default: 5).
-- `POKEAPI_PAGINATION_OFFSET_RANDOM`: This is for indicating whether the offset of the pagination is random (default: true).
+- `POKEAPI_PAGINATION_OFFSET_RANDOM`: This is to indicate whether the pagination offset is random (default: true).
 
 --- 
 
