@@ -4,6 +4,7 @@ namespace App\Services\Implementations;
 
 use App\Exceptions\ApiException;
 use App\Services\Interfaces\InbentaApiInterface;
+use App\Services\Implementations\PokeApiService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -42,47 +43,107 @@ class InbentaApiService implements InbentaApiInterface
 
     public function sendMessage($message) 
     {
-        $success = $newConversation = false;
-        $totalTry = 2;
-        $try = 0;
-        while (!$success && $try < $totalTry) 
-        {   // This loop is because the sessionToken can expire and there is no expiration value. (like in accessToken)
-            // If the first time the call has failed, make a call to create a new conversation. 
-            // if the second time the call has failed again, then return the error.
-
-            $data = $this->checkConversation($newConversation);
-
-            $headers = [
-                'x-inbenta-key' => $this->apiKey,
-                'x-inbenta-session' => 'Bearer ' . $data['sessionToken'],
-                'Authorization' => 'Bearer ' . $data['accessToken'],
-            ];
-
-            $body = ['message' => $message];
-
-            $response = $this->makePostRequest($headers, $data['chatbotApiUrl'] . $this->sendMessageEndpoint, $body);
-            if (!$response->successful()) $newConversation = true;
-            else $success = true;
-
-            $try++;
-        }
-        
-        if (!$success) $this->processResponse($response);
-
-        $answers = $response->json()['answers'];
-
         $messages = [];
-        foreach ($answers as $answer)
+        $keyWord = config('inbenta.keyWord');
+        $pos = strpos($message, $keyWord);
+       
+        if ($pos !== false) 
         {
-            foreach ($answer['messageList'] as $message)
+            $locations = $this->getLocations();
+            $messages = [
+                __('inbenta.key_word', ['keyWord' => $keyWord])
+            ];
+            $messages = array_merge($messages, $locations);
+            session()->put('notFound', 0);
+        }
+        else 
+        {
+            $success = $newConversation = false;
+            $totalTry = 2;
+            $try = 0;
+            while (!$success && $try < $totalTry) 
+            {   // This loop is because the sessionToken can expire and there is no expiration value. (like in accessToken)
+                // If the first time the call has failed, make a call to create a new conversation. 
+                // if the second time the call has failed again, then return the error.
+
+                $data = $this->checkConversation($newConversation);
+
+                $headers = [
+                    'x-inbenta-key' => $this->apiKey,
+                    'x-inbenta-session' => 'Bearer ' . $data['sessionToken'],
+                    'Authorization' => 'Bearer ' . $data['accessToken'],
+                ];
+
+                $body = ['message' => $message];
+
+                $response = $this->makePostRequest($headers, $data['chatbotApiUrl'] . $this->sendMessageEndpoint, $body);
+                if (!$response->successful()) $newConversation = true;
+                else $success = true;
+
+                $try++;
+            }
+            
+            if (!$success) $this->processResponse($response);
+
+            $answers = $response->json()['answers'];
+
+            $notFound = session()->get('notFound');
+            $notFound = (!$notFound) ? 0 : $notFound;
+
+            foreach ($answers as $answer)
             {
-                $messages[] = $message;
+                foreach ($answer['messageList'] as $message)
+                {
+                    $messages[] = $message;
+                }
+
+                $noResults = in_array('no-results', $answer['flags']);
+                if ($noResults) $notFound++;
+                else $notFound = 0;
+            }
+            session()->put('notFound', $notFound);
+
+            if ($notFound >= config('inbenta.maxNotFound'))
+            {
+                $pokemons = $this->getPokemons();
+                $messages = [
+                    __('inbenta.max_not_found')
+                ];
+                $messages = array_merge($messages, $pokemons);
             }
         }
 
         return [
             'response' => $messages,
         ];
+    }
+
+    private function getPokemons() 
+    {
+        $pokeApiService = new PokeApiService();
+        $pokemons = $pokeApiService->getPokemons($this->getLimit(), $this->getOffset());
+        return $pokemons;
+    }
+
+    private function getLocations()
+    {
+        $pokeApiService = new PokeApiService();
+        $locations = $pokeApiService->getLocations($this->getLimit(), $this->getOffset());
+        return $locations;
+    }
+
+    private function getLimit()
+    {
+        return config('pokeapi.pagination.limit');
+    }
+
+    private function getOffset()
+    {
+        $random = config('pokeapi.pagination.offset.random');
+        $start = config('pokeapi.pagination.offset.start');
+        $end = config('pokeapi.pagination.offset.end');
+
+        return ($random) ? rand($start, $end) : $start;
     }
 
     public function getHistory() 

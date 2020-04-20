@@ -17,6 +17,11 @@ return [
 
     'pagination' => [
         'limit' => env('POKEAPI_PAGINATION_LIMIT'),
+        'offset' => [
+            'random' => env('POKEAPI_PAGINATION_OFFSET_RANDOM', true),
+            'start' => 0,
+            'end' => 30,
+        ],
     ],
     
 ];

@@ -22,4 +22,7 @@ return [
         ],
     ],
     
+    'maxNotFound' => env('INBENTA_MAX_NOT_FOUND_RESULTS', 2),
+    'keyWord' => env('INBENTA_KEY_WORD', 'force'),
+
 ];
