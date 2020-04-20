@@ -15,7 +15,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"message\": \"Hi!\"\n}",
+							"raw": "{\n\t\"message\": \"force!\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -298,6 +298,74 @@
 								"v1",
 								"conversation",
 								"history"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Poke API",
+			"item": [
+				{
+					"name": "Pokemons",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://pokeapi.co/api/v2/pokemon?offset=960&limit=5",
+							"protocol": "https",
+							"host": [
+								"pokeapi",
+								"co"
+							],
+							"path": [
+								"api",
+								"v2",
+								"pokemon"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "960"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Locations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://pokeapi.co/api/v2/location?offset=20&limit=5",
+							"protocol": "https",
+							"host": [
+								"pokeapi",
+								"co"
+							],
+							"path": [
+								"api",
+								"v2",
+								"location"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "20"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
 							]
 						}
 					},
