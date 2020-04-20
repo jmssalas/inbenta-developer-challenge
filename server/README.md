@@ -14,6 +14,13 @@ In addition, this environment file contains the following variables (default: in
 - `INBENTA_ENDPOINT_CHATBOT_CREATE_CONVERSATION`: This is the endpoint to create a conversation with the chatbot.
 - `INBENTA_ENDPOINT_CHATBOT_SEND_MESSAGE`: This is the endpoint the send a message to the chatbot.
 - `INBENTA_ENDPOINT_CHATBOT_GET_HISTORY`: This is the endpoint to get the history of the conversation.
+- `INBENTA_MAX_NOT_FOUND_RESULTS`: This is the maximum of consecutive "no founds" answers by the bot.
+- `INBENTA_KEY_WORD`: This is the key word to print a list of pokemon locations.
+- `POKEAPI_URL`: This is the url of PokeAPI.
+- `POKEAPI_ENDPOINT_POKEMON`: This is the endpoint to get the pokemons.
+- `POKEAPI_ENDPOINT_LOCATION`: This is the endpoint to get the pokemon locations.
+- `POKEAPI_PAGINATION_LIMIT`: This is the pagination limit of result of the endpoints (default: 5).
+- `POKEAPI_PAGINATION_OFFSET_RANDOM`: This is for indicating whether the offset of the pagination is random (default: true).
 
 --- 
 
